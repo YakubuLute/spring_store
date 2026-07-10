@@ -1,12 +1,16 @@
+server:
+  port: 8081
+
+
 spring:
   application:
     name: CreatorStore
 # Database Information
 
   datasource:
-    url:
-    username:
-    password:
+    url:  ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
 
   # ORM Configuration
   # Hibernate - ORM for Java configuration
@@ -17,3 +21,4 @@ spring:
     properties:
       hibernate:
         format_sql: true
+
