@@ -1,14 +1,19 @@
 package com.creatorstore.creatorstore.entities;
 
-import jakarta.persistence.*;
-import lombok.*;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 @Entity
-@Table(name="order")
+@Table(name="orders")
 @Getter
 @Setter
 @AllArgsConstructor
@@ -31,7 +36,8 @@ public class Order {
     @Column(nullable = false, name = "total_price")
    private BigDecimal totalPrice;
 
-    @OneToMany(mappedBy = "order")
+    @JsonManagedReference
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     private List<OrderItem>  orderItem;
 
     @Column(nullable = false, name = "created_at")
@@ -41,8 +47,6 @@ public class Order {
     public void prePersist() {
         this.createdAt = LocalDateTime.now();
     }
-
-
 
     @ManyToOne
     @JoinColumn(name = "product")
