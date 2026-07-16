@@ -1,19 +1,60 @@
 package com.creatorstore.creatorstore.services;
 
+import com.creatorstore.creatorstore.entities.OrderItem;
+import com.creatorstore.creatorstore.entities.Product;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
-import com.creatorstore.creatorstore.repository.OrderRepository;
+import com.creatorstore.creatorstore.repository.*;
 import com.creatorstore.creatorstore.entities.Order;
 
 import lombok.RequiredArgsConstructor;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class OrderService {
-    final  OrderRepository orderRepository;
-    final  ProductRepository productRepository;
+    private final  OrderRepository orderRepository;
+   private final  ProductRepository productRepository;
 
+    @Transactional
     public Order createOrder(OrderRequest orderRequest){
+        List<OrderItem> orderItems = new ArrayList<>();
+        BigDecimal totalPrice = BigDecimal.ZERO;
+    Order order =  new Order();
+    order.setCustomerEmail(orderRequest.getCustomerEmail());
+    order.setCustomerName(orderRequest.getCustomerName());
+    order.setStatus("CONFIRMED");
+
+    for(OrderItemRequest itemRequest: orderRequest.getItems()) {
+        Product product = productRepository.findBy(itemRequest.getProductId()).orElseThrow(() -> new RuntimeException("Product with this ID was not found " + itemRequest.getProductId()));
+
+        if (product.getStockQuantity() < itemRequest.getQuantity()) {
+            throw new RuntimeException("Not enough stock for this product " + itemRequest.getProductId());
+        }
+        // calculate total price
+        totalPrice = totalPrice.add(product.getPrice().multiply(BigDecimal.valueOf(itemRequest.getQuantity())));
+
+
+        product.setStockQuantity(
+                product.getStockQuantity() - itemRequest.getQuantity()
+        );
+        productRepository.save(product);
+
+        //Builder pattern to make obj
+        OrderItem orderItem = OrderItem.builder().order(order).product(product).quantity(itemRequest.getQuantity()).priceAtPurchase(product.getPrice()).build();
+        orderItems.add(orderItem);
 
     }
+    order.setTotalPrice(totalPrice);
+   order.setOrderItem(orderItems);
+
+        return order;
+
+        }
+
 }
+
