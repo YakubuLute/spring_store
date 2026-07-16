@@ -1,14 +1,18 @@
 package com.creatorstore.creatorstore.services;
 
+import com.creatorstore.creatorstore.dto.OderItemRequest;
+import com.creatorstore.creatorstore.dto.OrderRequest;
 import com.creatorstore.creatorstore.entities.OrderItem;
 import com.creatorstore.creatorstore.entities.Product;
 import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
 import org.springframework.stereotype.Service;
 
 import com.creatorstore.creatorstore.repository.*;
 import com.creatorstore.creatorstore.entities.Order;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -18,19 +22,21 @@ import java.util.List;
 @RequiredArgsConstructor
 public class OrderService {
     private final  OrderRepository orderRepository;
-   private final  ProductRepository productRepository;
+    private final  ProductRepository productRepository;
 
     @Transactional
-    public Order createOrder(OrderRequest orderRequest){
+    public Order createOrder(@Valid @RequestBody OrderRequest orderRequest){
+
         List<OrderItem> orderItems = new ArrayList<>();
         BigDecimal totalPrice = BigDecimal.ZERO;
-    Order order =  new Order();
-    order.setCustomerEmail(orderRequest.getCustomerEmail());
-    order.setCustomerName(orderRequest.getCustomerName());
-    order.setStatus("CONFIRMED");
 
-    for(OrderItemRequest itemRequest: orderRequest.getItems()) {
-        Product product = productRepository.findBy(itemRequest.getProductId()).orElseThrow(() -> new RuntimeException("Product with this ID was not found " + itemRequest.getProductId()));
+        Order order =  new Order();
+        order.setCustomerName(orderRequest.getCustomerName());
+        order.setCustomerEmail(orderRequest.getCustomerEmail());
+        order.setStatus("CONFIRMED");
+
+    for(OderItemRequest itemRequest: orderRequest.getOrderItems()) {
+        Product product = productRepository.findById(itemRequest.getProductId()).orElseThrow(() -> new RuntimeException("Product with this ID was not found " + itemRequest.getProductId()));
 
         if (product.getStockQuantity() < itemRequest.getQuantity()) {
             throw new RuntimeException("Not enough stock for this product " + itemRequest.getProductId());
@@ -52,9 +58,16 @@ public class OrderService {
     order.setTotalPrice(totalPrice);
    order.setOrderItem(orderItems);
 
-        return order;
+        return orderRepository.save(order);
 
         }
 
+    public List<Order> getAllOrder(){
+        return orderRepository.findAll();
+    }
+
+    public Order getOrderById(Long id){
+        return orderRepository.findById(id).orElseThrow(()->  new RuntimeException("Order with this ID was not found " + id));
+    }
 }
 

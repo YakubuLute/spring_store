@@ -13,7 +13,7 @@ import lombok.Setter;
 @AllArgsConstructor
 public class OderItemRequest {
     @NotNull(message = "Product is required")
-    private String productId;
+    private Long productId;
 
     @NotNull(message = "Quantity is required")
     @Min(value = 1, message = "Quantity must be at least 1")

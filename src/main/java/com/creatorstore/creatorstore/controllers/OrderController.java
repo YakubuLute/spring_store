@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/orders")
 @RequiredArgsConstructor
@@ -20,4 +22,14 @@ public class OrderController {
     public Order createOrder(@Valid @RequestBody  OrderRequest orderRequest) {
         return orderService.createOrder(orderRequest);
     }
+
+    //Get all orders
+    public List<Order> getAllOrder(){
+        return orderService.getAllOrder();
+    }
+
+    public Order getOrderById(Long orderId){
+        return orderService.getOrderById(id);
+    }
+
 }
